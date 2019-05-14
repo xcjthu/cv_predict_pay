@@ -14,13 +14,18 @@ class CV_formatter:
         self.th = config.getint('data', 'skills_th')
         self.word2id = json.load(open(config.get("data", "word2id"), "r"))
         self.max_len = config.getint("data", "sent_max_len")
+        
+        self.skills = json.load(open(config.get('data', 'skill2id')))
 
-        self.skills = {}
+        self.work_num = config.getint('data', 'work_history_num')
+        self.work_len = config.getint('data', 'work_history_len')
+        
+        '''
         for l in f:
             l = l.strip().split('\t')
             if int(l[1]) >= self.th:
                 self.skills[l[0]] = len(self.skills)
-
+        '''
 
     def lookup(self, data, max_len):
         lookup_id = []
@@ -40,7 +45,7 @@ class CV_formatter:
 
 
     def turnTowordlist(self, sentence):
-        text = re.sub("[^a-zA-Z]", " ", sentence)
+        text = re.sub("[^a-zA-Z.,;]", " ", sentence)
         words = text.lower().split()
         return words
 
@@ -52,6 +57,8 @@ class CV_formatter:
         skills = []
         for v in data['skills']:
             if v in self.skills:
+                if self.skills[v] >= len(self.skills):
+                    continue
                 skills.append(self.skills[v])
 
         if len(skills) == 0:
@@ -83,6 +90,10 @@ class CV_formatter:
             else:
                 y = data['log_realized_wage']
                 y = int(y)
+                if y > 2.55:
+                    return 0
+                else:
+                    return 1
                 if y <= 0 or y > 3:
                     return None
                 else:
@@ -101,18 +112,27 @@ class CV_formatter:
     def format(self, data, config, transformer, mode):
         desc = []
         skills = []
-
+        work_history = []
+        tag_line = []
+        
         label = []
 
         for d in data:
             desc.append(self.lookup(self.turnTowordlist(d['description']), self.max_len))
-            
             skills.append(self.pad_skill(d['skills'], config.getint('data', 'skill_num_per_data')))
             label.append(d['label'])
+
+            work_tmp = []
+            for work in data['work_history']:
+                work_tmp.append(self.lookup(self.turnTowordlist(work['title'], self.work_len)))
+            while len(work_tmp) < self.work_num:
+                work_tmp.append([0] * self.work_len)
+            work_tmp = work_tmp[:self.work_num]
 
         desc = torch.tensor(desc, dtype = torch.long)
         skills = torch.tensor(skills, dtype = torch.long)
         label = torch.tensor(label, dtype = torch.long)
+        work_tmp = torch.tensor(work_tmp, dtype = torch.long)
 
         return {'description': desc, 'skills': skills, 'label': label}
             

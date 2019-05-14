@@ -126,20 +126,39 @@ def gen_result(res, print=False):
 
 
 def generate_embedding(embedding, config):
-    from word2vec.word2vec import Word2vec
+    # from word2vec.word2vec import Word2vec
+    
+    path = config.get('data', 'word2vec')
 
-    transformer = Word2vec(config.get("data", "word2vec"))
+    # transformer = Word2vec(config.get("data", "word2vec"))
     word_list = json.load(open(config.get("data", "word2id"), "r"))
     embs = np.zeros([len(word_list), config.getint("data", "vec_size")], dtype=np.float32)
     cnt = 0
     total = 0
+    
+    fin = open(path, 'r')
+    # line = fin.readline()
+    for line in fin:
+        line = line.split()
+        word = line[0]
+        line = line[1:]
+        # print(line)
+        try:
+            for i in range(len(line)):
+                embs[word_list[word]][i] = float(line[i])
+        except Exception as err:
+            print(err)
+            print(line)
+        total += 1
 
+    '''
     for word in word_list:
         if word in transformer.model:
             embs[word_list[word]] = torch.from_numpy(np.array(transformer.load(word), dtype=np.float32))
         else:
             cnt += 1
         total += 1
+    '''
 
     embedding.weight.data.copy_(torch.from_numpy(embs))
     print_info("%d/%d words missing" % (cnt, total))

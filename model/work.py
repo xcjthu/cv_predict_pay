@@ -26,6 +26,7 @@ def valid_net(net, valid_dataset, use_gpu, config, epoch, writer=None):
 
     
     try:
+        result_out = False
         if config.getboolean('valid', 'valid_out'):
             fout = open(config.get('valid', 'valid_out_path'), 'w')
             result_out = True
@@ -171,9 +172,9 @@ def train_net(net, train_dataset, valid_dataset, use_gpu, config):
 
             if cnt % output_time == 0:
                 print('\r', end='', flush=True)
-                print('%.4f   % 3d    |  %.4f         % 2.2f   |   ????           ?????   |  %s  |' % (
+                print('%.4f   % 3d    |  %.4f         % 2.2f   |   ????           ?????   |  %s  | %d' % (
                     lr, epoch_num + 1, train_loss / train_cnt, train_acc / train_cnt * 100,
-                    time_to_str((timer() - start))), end='',
+                    time_to_str((timer() - start)), cnt), end='',
                       flush=True)
 
         train_loss /= train_cnt
