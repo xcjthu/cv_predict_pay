@@ -123,17 +123,18 @@ class CV_formatter:
             label.append(d['label'])
 
             work_tmp = []
-            for work in data['work_history']:
-                work_tmp.append(self.lookup(self.turnTowordlist(work['title'], self.work_len)))
+            for work in d['work_history']:
+                work_tmp.append(self.lookup(self.turnTowordlist(work['title']), self.work_len))
             while len(work_tmp) < self.work_num:
                 work_tmp.append([0] * self.work_len)
             work_tmp = work_tmp[:self.work_num]
+            work_history.append(work_tmp)
 
         desc = torch.tensor(desc, dtype = torch.long)
         skills = torch.tensor(skills, dtype = torch.long)
         label = torch.tensor(label, dtype = torch.long)
-        work_tmp = torch.tensor(work_tmp, dtype = torch.long)
+        work_history = torch.tensor(work_history, dtype = torch.long)
 
-        return {'description': desc, 'skills': skills, 'label': label}
+        return {'description': desc, 'skills': skills, 'label': label, 'work_history': work_history}
             
 
